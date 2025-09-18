@@ -1,14 +1,25 @@
-### JSON Merge Utilities
+### FHIR JSON Merge Utilities
 
-This repository contains three Node.js command-line utilities for merging data from one JSON file into another. Each script uses a different method for merging, which results in distinct behaviors, especially when handling arrays.
+This repository contains three Node.js command-line utilities for merging a partially formed FHIR resource into a fully represented FHIR resource using JSON.
+
+  * The **`merge-json.js`** script uses a plain JavaScript function to overwrite arrays.
+  * The **`deepmerge.js`** script (using the `deepmerge` library) is configured to overwrite arrays by default.
+  * The **`lodash-merge.js`** script (using the `lodash` library) handles arrays differently by merging objects within the arrays on an index-by-index basis, preserving existing properties where possible.
+
+Although these merge utilities are generic for any JSON data, they can be used to support the update of an existing valid FHIR resource with new or updated data from a partially formed FHIR resource.
+
+-----
+
+**Disclaimer:** This is a proof of concept for further investigation and development and is not intended to be used as is in any real implementation.
 
 -----
 
 ### Prerequisites
 
-To run these scripts, you need to have Node.js installed. Each utility also requires a specific library, which you can install via npm.
+To run these scripts, you need to have Node.js installed. All required dependencies can be installed using a single command: `npm install`.
 
-  * **`merge-json.js`**: No external dependencies.
+If you only want to use a specific script, you can install the dependencies separately as follows:
+
   * **`deepmerge.js`**: Requires the `deepmerge` library.
     `npm install deepmerge`
   * **`lodash-merge.js`**: Requires the `lodash` library.
@@ -24,7 +35,7 @@ All three utilities are run from the command line with the same basic syntax.
 
 The result of the merge will be printed to standard output (stdout), so you can redirect it to a new file.
 
-Example: `node deepmerge.js AllergyIntolerance-604a-pat-sf-partial-update.json AllergyIntolerance-604a-pat-sf.json > merged.json`
+Example: `node lodash-merge.js AllergyIntolerance-604a-pat-sf-partial-update.json AllergyIntolerance-604a-pat-sf.json > merged.json`
 
 -----
 
@@ -145,7 +156,7 @@ This example shows a partial update where the source file provides all necessary
 }
 ```
 
-*Explanation:* The `merge-json.js` and `deepmerge.js` scripts overwrite the entire `clinicalStatus` object and `note` array. The final output is identical for all three scripts because the source provides all necessary data and no merging by index is required for a valid result. While `lodash-merge.js` handles arrays differently by attempting to merge by index, in this specific case, the source file provides a complete object for the `clinicalStatus.coding` array, which includes both the `system` and `code` sub-elements. This means there are no missing elements for `lodash` to preserve from the target file, resulting in the same output as the other scripts that simply overwrite the array.
+*Explanation:* The **`merge-json.js`** and **`deepmerge.js`** scripts overwrite the entire `clinicalStatus` object and `note` array. The final output is identical for all three scripts because the source provides all necessary data and no merging by index is required for a valid result. While **`lodash-merge.js`** handles arrays differently by attempting to merge by index, in this specific case, the source file provides a complete object for the `clinicalStatus.coding` array, which includes both the `system` and `code` sub-elements. This means there are no missing elements for `lodash` to preserve from the target file, resulting in the same output as the other scripts that simply overwrite the array.
 
 -----
 
