@@ -103,10 +103,49 @@ This example shows a partial update where the source file provides all necessary
 }
 ```
 
-| Script Name | Resulting JSON | Explanation |
-| :--- | :--- | :--- |
-| **`merge-json.js`** or **`deepmerge.js`** | `json{ "resourceType": "AllergyIntolerance", "id": "604a-pat-sf", "meta": { "profile": ["https://smartforms.csiro.au/ig/StructureDefinition/SHCAllergyIntolerance"] }, "clinicalStatus": { "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "code": "inactive" }] }, "code": { "coding": [{ "system": "http://snomed.info/sct", "code": "412583005", "display": "Bee pollen" }], "text": "Bee pollen" }, "patient": { "reference": "Patient/pat-sf" }, "note": [{ "text": "Duplicated allergy in record. Removed." }], "reaction": [{ "manifestation": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "271807003", "display": "Rash" }], "text": "Rash" }] }] }` | The `clinicalStatus` object is fully overwritten by the source object. The `note` array is also fully overwritten. Other properties from the target, such as `id` and `code`, are preserved. The final output is identical to the `lodash-merge` result because the source provides all necessary data. |
-| **`lodash-merge.js`** | `json{ "resourceType": "AllergyIntolerance", "id": "604a-pat-sf", "meta": { "profile": ["https://smartforms.csiro.au/ig/StructureDefinition/SHCAllergyIntolerance"] }, "clinicalStatus": { "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "code": "inactive" }] }, "code": { "coding": [{ "system": "http://snomed.info/sct", "code": "412583005", "display": "Bee pollen" }], "text": "Bee pollen" }, "patient": { "reference": "Patient/pat-sf" }, "note": [{ "text": "Duplicated allergy in record. Removed." }], "reaction": [{ "manifestation": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "271807003", "display": "Rash" }], "text": "Rash" }] }] }` | Lodash merges objects by property and arrays by index. It merges the `clinicalStatus` object, with the source values for `system` and `code` overwriting the target's. The `note` array is also merged, with the source note's `text` overwriting the target's. The final output is identical to the `merge-json.js` result in this specific case. |
+**Result for all three scripts (`merge-json.js`, `deepmerge.js`, and `lodash-merge.js`)**
+
+```json
+{
+  "resourceType": "AllergyIntolerance",
+  "id": "604a-pat-sf",
+  "meta": {
+    "profile": ["https://smartforms.csiro.au/ig/StructureDefinition/SHCAllergyIntolerance"]
+  },
+  "clinicalStatus": {
+    "coding": [{
+      "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+      "code": "inactive"
+    }]
+  },
+  "code": {
+    "coding": [{
+      "system": "http://snomed.info/sct",
+      "code": "412583005",
+      "display": "Bee pollen"
+    }],
+    "text": "Bee pollen"
+  },
+  "patient": {
+    "reference": "Patient/pat-sf"
+  },
+  "note": [{
+    "text": "Duplicated allergy in record. Removed."
+  }],
+  "reaction": [{
+    "manifestation": [{
+      "coding": [{
+        "system": "http://snomed.info/sct",
+        "code": "271807003",
+        "display": "Rash"
+      }],
+      "text": "Rash"
+    }]
+  }]
+}
+```
+
+*Explanation:* The `merge-json.js` and `deepmerge.js` scripts overwrite the entire `clinicalStatus` object and `note` array. The final output is identical for all three scripts because the source provides all necessary data and no merging by index is required for a valid result. While `lodash-merge.js` handles arrays differently by attempting to merge by index, in this specific case, the source file provides a complete object for the `clinicalStatus.coding` array, which includes both the `system` and `code` sub-elements. This means there are no missing elements for `lodash` to preserve from the target file, resulting in the same output as the other scripts that simply overwrite the array.
 
 -----
 
@@ -172,7 +211,89 @@ This example shows how the `lodash` merge retains properties from the target fil
 }
 ```
 
-| Script Name | Resulting JSON | Explanation |
-| :--- | :--- | :--- |
-| **`merge-json.js`** or **`deepmerge.js`** | `json{ "resourceType": "AllergyIntolerance", "id": "604a-pat-sf", "meta": { "profile": ["https://smartforms.csiro.au/ig/StructureDefinition/SHCAllergyIntolerance"] }, "clinicalStatus": { "coding": [{ "code": "inactive" }] }, "code": { "coding": [{ "system": "http://snomed.info/sct", "code": "412583005", "display": "Bee pollen" }], "text": "Bee pollen" }, "patient": { "reference": "Patient/pat-sf" }, "note": [{ "text": "Duplicated allergy in record. Removed." }], "reaction": [{ "manifestation": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "271807003", "display": "Rash" }], "text": "Rash" }] }] }` | The `clinicalStatus.coding` array is overwritten by the source's array, which removes the `system` property. This results in an **invalid FHIR resource** because the `system` is a required element. The `note` array is also completely overwritten. Other properties from the target, such as `id` and `code`, are preserved. |
-| **`lodash-merge.js`** | `json{ "resourceType": "AllergyIntolerance", "id": "604a-pat-sf", "meta": { "profile": ["https://smartforms.csiro.au/ig/StructureDefinition/SHCAllergyIntolerance"] }, "clinicalStatus": { "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical", "code": "inactive" }] }, "code": { "coding": [{ "system": "http://snomed.info/sct", "code": "412583005", "display": "Bee pollen" }], "text": "Bee pollen" }, "patient": { "reference": "Patient/pat-sf" }, "note": [{ "text": "Duplicated allergy in record. Removed." }], "reaction": [{ "manifestation": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "271807003", "display": "Rash" }], "text": "Rash" }] }] }` | **This is the only method that produces the intended and valid FHIR output.** Lodash merges the `clinicalStatus.coding` array by index. The `code` from the source overwrites the target's `code`, but the target's **`system` is preserved**, which is a required element for a valid FHIR resource. The `note` array's text is overwritten. Other properties are preserved. |
+**Result for `merge-json.js` and `deepmerge.js`**
+
+```json
+{
+  "resourceType": "AllergyIntolerance",
+  "id": "604a-pat-sf",
+  "meta": {
+    "profile": ["https://smartforms.csiro.au/ig/StructureDefinition/SHCAllergyIntolerance"]
+  },
+  "clinicalStatus": {
+    "coding": [{
+      "code": "inactive"
+    }]
+  },
+  "code": {
+    "coding": [{
+      "system": "http://snomed.info/sct",
+      "code": "412583005",
+      "display": "Bee pollen"
+    }],
+    "text": "Bee pollen"
+  },
+  "patient": {
+    "reference": "Patient/pat-sf"
+  },
+  "note": [{
+    "text": "Duplicated allergy in record. Removed."
+  }],
+  "reaction": [{
+    "manifestation": [{
+      "coding": [{
+        "system": "http://snomed.info/sct",
+        "code": "271807003",
+        "display": "Rash"
+      }],
+      "text": "Rash"
+    }]
+  }]
+}
+```
+
+*Explanation:* The `clinicalStatus.coding` array is overwritten by the source's array, which removes the `system` property. This results in an **invalid FHIR resource** because the `system` is a required element. The `note` array is also completely overwritten. Other properties from the target, such as `id` and `code`, are preserved.
+
+**Result for `lodash-merge.js`**
+
+```json
+{
+  "resourceType": "AllergyIntolerance",
+  "id": "604a-pat-sf",
+  "meta": {
+    "profile": ["https://smartforms.csiro.au/ig/StructureDefinition/SHCAllergyIntolerance"]
+  },
+  "clinicalStatus": {
+    "coding": [{
+      "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+      "code": "inactive"
+    }]
+  },
+  "code": {
+    "coding": [{
+      "system": "http://snomed.info/sct",
+      "code": "412583005",
+      "display": "Bee pollen"
+    }],
+    "text": "Bee pollen"
+  },
+  "patient": {
+    "reference": "Patient/pat-sf"
+  },
+  "note": [{
+    "text": "Duplicated allergy in record. Removed."
+  }],
+  "reaction": [{
+    "manifestation": [{
+      "coding": [{
+        "system": "http://snomed.info/sct",
+        "code": "271807003",
+        "display": "Rash"
+      }],
+      "text": "Rash"
+    }]
+  }]
+}
+```
+
+*Explanation:* **This is the only method that produces the intended and valid FHIR output.** Lodash merges the `clinicalStatus.coding` array by index. The `code` from the source overwrites the target's `code`, but the target's **`system` is preserved**, which is a required element for a valid FHIR resource. The `note` array's text is overwritten. Other properties are preserved.
