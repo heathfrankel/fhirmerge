@@ -1,0 +1,11 @@
+{
+  "resourceType" : "AllergyIntolerance",
+  "clinicalStatus" : {
+    "coding" : [{
+      "code" : "inactive"
+    }]
+  },
+  "note" : [{
+    "text" : "Duplicated allergy in record. Removed."
+  }]
+}
